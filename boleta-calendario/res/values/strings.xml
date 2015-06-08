@@ -6,7 +6,11 @@
     <string name="button2">Ver calendario</string>
     <string name="button3">Configuracion</string>
     
-    <string name="button_text">OCR!</string>
-    <string name="text_hint">OCRed Text will appear here</string>
+    <string name="conf_button1">Tiempo de recordatorio</string>
+    <string name="conf_button2">Tiempo de duracion</string>
+    <string name="conf_button3">Color evento</string>
+    <string name="check_alarm">Habilita futuras alarmas</string>
+    
+    <string name="conf_back">Volver</string>
     
 </resources>

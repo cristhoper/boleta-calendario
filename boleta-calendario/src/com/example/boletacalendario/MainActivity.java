@@ -20,7 +20,9 @@ import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,6 +39,7 @@ import android.os.SystemClock;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.Colors;
 import android.provider.CalendarContract.Events;
+import android.provider.CalendarContract.Reminders;
 import android.provider.MediaStore;
 import android.text.Html;
 import android.util.Log;
@@ -47,6 +50,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.boletacalendario.picker.DatePickerFragment;
 import com.example.boletacalendario.picker.DatePickerFragment.DateSelectedListener;
@@ -207,6 +211,7 @@ public class MainActivity extends Activity {
 	protected void onPhotoTaken() {
 		_taken = true;
 
+		boolean longdate = false, longdate2 = false, shortdate = false;
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inSampleSize = 4;
 
@@ -250,20 +255,31 @@ public class MainActivity extends Activity {
 		System.out.println(recognizedText);
 
 		recognizedText = recognizedText.toLowerCase(Locale.getDefault());
+		recognizedText = recognizedText.replace(" ", "");
+		
 		Pattern p = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])[- /.](0?[1-9]|1[012])[- /.](19|20)\\d\\d");
 		Matcher m = p.matcher(recognizedText);
 		String matches = "";
-		boolean shortdate = false;
+		shortdate = false;
 		while (m.find()) { // Find each match in turn; String can't do this.
 			shortdate = true;
 			matches += m.group();
 		}
 		if(!shortdate) {
-			p = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])[- /.]([a-z][a-z][a-z])[- /.](19|20)\\d\\d");
+			p = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])[-/.]([a-z][a-z][a-z])[-/.](19|20)\\d\\d");
 			m = p.matcher(recognizedText);
-			boolean longdate = false;
+			longdate = false;
 			while (m.find()) { // Find each match in turn; String can't do this.
 				longdate = true;
+				matches += m.group();
+			}
+		}
+		else if(!longdate) {
+			p = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])([a-z][a-z][a-z])(19|20)\\d\\d");
+			m = p.matcher(recognizedText);
+			longdate2 = false;
+			while (m.find()) { // Find each match in turn; String can't do this.
+				longdate2 = true;
 				matches += m.group();
 			}
 		}
@@ -284,45 +300,79 @@ public class MainActivity extends Activity {
 
 		}
 		else {
-			scannedText.setText("Fecha no encontrada");
-			scannedText.setCompoundDrawablesWithIntrinsicBounds(0,0,android.R.drawable.stat_sys_warning,0);
-			scannedText.setOnClickListener(new OnClickListener() {
-
-				@Override
-				public void onClick(View v) {
-					DatePickerFragment newFragment = new DatePickerFragment();
-					newFragment.setDateListener(new DateSelectedListener() {
-
-						@Override
-						public void afterDateSelectedListener(int day, int month, int year) {
-							saveDateOnCalendar(month+"/"+day+"/"+year);
-							scannedText.setText(day+"/"+month+"/"+year);
-						}
-					});
-					newFragment.show(MainActivity.this.getFragmentManager(), "datePicker");
-				    
-				}
-			});
+			notFoundDate();
 		}
 
 	}
+	
+	public void notFoundDate() {
+		scannedText.setText("Fecha no encontrada");
+		scannedText.setCompoundDrawablesWithIntrinsicBounds(0,0,android.R.drawable.stat_sys_warning,0);
+		scannedText.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				DatePickerFragment newFragment = new DatePickerFragment();
+				newFragment.setDateListener(new DateSelectedListener() {
+
+					@Override
+					public void afterDateSelectedListener(int day, int month, int year) {
+						saveDateOnCalendar(month+"/"+day+"/"+year);
+						scannedText.setText(day+"/"+month+"/"+year);
+					}
+				});
+				newFragment.show(MainActivity.this.getFragmentManager(), "datePicker");
+			    
+			}
+		});
+	}
  
 	public void saveDateOnCalendar(String date){
-		Calendar cal = Calendar.getInstance();         
-		cal.setTime(new Date(date));
+		long EVENT_ID = 0;
+		Calendar cal = Calendar.getInstance();
+		
+		try {
+			cal.setTime(new Date(date));
+		} catch (Exception e) {
+			notFoundDate();
+			return;
+		}
+		
+		cal.add(Calendar.HOUR, 10); // recordatorio "En la mañana"
+		
 		
 		SharedPreferences mPrefs = getSharedPreferences(getPackageName(),Context.MODE_PRIVATE);
+
 		
-		Intent intent = new Intent(Intent.ACTION_EDIT);
-		intent.setType("vnd.android.cursor.item/event");
-		intent.putExtra("beginTime", cal.getTimeInMillis());
-		intent.putExtra("allDay", false);
-		intent.putExtra("endTime", cal.getTimeInMillis()+60*60*1000);
-		intent.putExtra("title", "[Recordatorio] Boleta ");
-	
-		intent.putExtra(Events.EVENT_COLOR, mPrefs.getInt("color", 0));
-		
-		startActivity(intent);
+		try {
+            ContentResolver cr = getContentResolver();
+            ContentValues values = new ContentValues();
+            values.put(CalendarContract.Events.DTSTART, cal.getTimeInMillis());
+            values.put(CalendarContract.Events.DTEND, cal.getTimeInMillis()+mPrefs.getInt("hour_pre", 0)*60*60*1000+mPrefs.getInt("min_pre", 0)*60*1000);
+            values.put(CalendarContract.Events.TITLE, "[Recordatorio] Boleta ");
+            values.put(CalendarContract.Events.ALL_DAY, false);
+            values.put(CalendarContract.Events.EVENT_COLOR, mPrefs.getInt("color",Color.RED));
+            values.put(CalendarContract.Events.CALENDAR_ID, 1);
+            values.put(CalendarContract.Events.EVENT_TIMEZONE, Calendar.getInstance().getTimeZone().getID());
+            System.out.println(Calendar.getInstance().getTimeZone().getID());
+            Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
+
+            EVENT_ID = Long.parseLong(uri.getLastPathSegment());
+            
+            if(mPrefs.getBoolean("has_alarm",false)) {
+	    		values = new ContentValues();
+	    		values.put(Reminders.MINUTES, (int)mPrefs.getInt("hour_fin", 0)%60 + mPrefs.getInt("min_fin", 0));
+	    		values.put(Reminders.EVENT_ID, EVENT_ID);
+	    		values.put(Reminders.METHOD, Reminders.METHOD_ALERT);
+	    		uri = cr.insert(Reminders.CONTENT_URI, values);
+            }
+            
+            Toast.makeText(this, "Fecha de boleta agregada", Toast.LENGTH_SHORT).show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
 	}
 	
 

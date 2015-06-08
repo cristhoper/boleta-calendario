@@ -10,7 +10,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_marginRight="10dp"
-        android:text="Selecciona tiempo de recordatorio alarma" />
+        android:text="@string/conf_button1" />
 
     <Button
         android:id="@+id/button2"
@@ -21,14 +21,34 @@
         android:layout_alignRight="@+id/button1"
         android:layout_below="@id/button1"
         android:layout_marginRight="10dp"
-        android:text="Selecciona tiempo de duracion" />
+        android:text="@string/conf_button2" />
 
+    <CheckBox
+        android:id="@+id/check_alarm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button1"
+        android:layout_alignParentRight="true"
+        android:layout_alignRight="@+id/button1"
+        android:layout_below="@id/button2"
+        android:text="@string/check_alarm" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button1"
+        android:layout_alignParentRight="true"
+        android:layout_alignRight="@+id/button1"
+        android:layout_below="@id/check_alarm"
+        android:layout_marginRight="10dp"
+        android:text="@string/conf_button3" />
 
     <Button
         android:id="@+id/button_back"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:text="Volver" />
+        android:text="@string/conf_back" />
 
 </RelativeLayout>

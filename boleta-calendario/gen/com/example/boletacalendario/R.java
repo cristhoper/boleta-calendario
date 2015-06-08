@@ -17,8 +17,9 @@ public final class R {
         public static final int button1=0x7f050000;
         public static final int button2=0x7f050001;
         public static final int button3=0x7f050003;
-        public static final int button_back=0x7f050002;
-        public static final int field=0x7f050004;
+        public static final int button_back=0x7f050004;
+        public static final int check_alarm=0x7f050002;
+        public static final int field=0x7f050005;
     }
     public static final class layout {
         public static final int activity_config=0x7f030000;
@@ -29,7 +30,10 @@ public final class R {
         public static final int button1=0x7f040001;
         public static final int button2=0x7f040002;
         public static final int button3=0x7f040003;
-        public static final int button_text=0x7f040004;
-        public static final int text_hint=0x7f040005;
+        public static final int check_alarm=0x7f040007;
+        public static final int conf_back=0x7f040008;
+        public static final int conf_button1=0x7f040004;
+        public static final int conf_button2=0x7f040005;
+        public static final int conf_button3=0x7f040006;
     }
 }
