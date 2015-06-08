@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -247,7 +249,7 @@ public class MainActivity extends Activity {
 		TessBaseAPI baseApi = new TessBaseAPI();
 		baseApi.setDebug(true);
 		baseApi.init(DATA_PATH, lang);
-		baseApi.setVariable("tessedit_char_whitelist","abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789/");
+		baseApi.setVariable("tessedit_char_whitelist","abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789/.");
 		baseApi.setImage(bitmap);
 
 		String recognizedText = baseApi.getUTF8Text();
@@ -255,9 +257,8 @@ public class MainActivity extends Activity {
 		System.out.println(recognizedText);
 
 		recognizedText = recognizedText.toLowerCase(Locale.getDefault());
-		recognizedText = recognizedText.replace(" ", "");
 		
-		Pattern p = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])[- /.](0?[1-9]|1[012])[- /.](19|20)\\d\\d");
+		Pattern p = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])[- /.](0?[1-9]|1[012])[- /.]\\d\\d");
 		Matcher m = p.matcher(recognizedText);
 		String matches = "";
 		shortdate = false;
@@ -294,8 +295,22 @@ public class MainActivity extends Activity {
 
 		System.out.println("Fecha: " + matches);
 		if ( matches.length() > 0 ) {
-			scannedText.setText(matches);
+			
 			scannedText.setCompoundDrawablesWithIntrinsicBounds(0,0,0,0);
+			if(!longdate2) {
+				DateFormat userDateFormat = new SimpleDateFormat("dd/MM/yy");
+				DateFormat dateFormatNeeded = new SimpleDateFormat("MM/dd/yy");
+				Date date;
+				try {
+					date = userDateFormat.parse(matches);
+					matches = dateFormatNeeded.format(date);
+				} catch (ParseException e) {
+					notFoundDate();
+					return;
+				}
+				
+			}
+			scannedText.setText(matches);
 			saveDateOnCalendar(matches);
 
 		}
@@ -367,7 +382,7 @@ public class MainActivity extends Activity {
 	    		uri = cr.insert(Reminders.CONTENT_URI, values);
             }
             
-            Toast.makeText(this, "Fecha de boleta agregada", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Fecha de boleta agregada "+date, Toast.LENGTH_SHORT).show();
 
         } catch (Exception e) {
             e.printStackTrace();
