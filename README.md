@@ -11,7 +11,7 @@ y ejecutar:
 
 ```
 #!bash
-git clone git@bitbucket.org:cristhoper/boleta-calendario.git
+git clone git@github.com:cristhoper/boleta-calendario.git
 
 ```
 Luego de esto, importar los archivos hacia eclipse
@@ -22,3 +22,7 @@ Y seleccionar SOLAMENTE
  * boleta-calendario
 
 De esta forma, se incluiran de inmediato en eclipse el codigo fuente, listo para ejecutar.
+
+
+# TODO
+Migrar a Android Studio
